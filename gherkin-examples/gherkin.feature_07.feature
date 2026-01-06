@@ -1,0 +1,135 @@
+@passing
+Feature: Markdown Output Generation
+
+  As a user
+  I want well-formatted markdown reports of meeting minutes
+  So that I can share and archive structured meeting information
+
+  Rule: Markdown output must follow standard template
+
+    Scenario: Generate markdown with all sections
+      Given an ExtractionResult with complete data
+      When I generate markdown output
+      Then the output should have a title heading with meeting name
+      And the output should have a metadata section with date, duration, and participants
+      And the output should have a table of contents
+      And the output should have a "Decisions Made" section
+      And the output should have an "Action Items" section
+      And the output should have a "Risks Identified" section
+      And the output should have a "Next Steps" section
+      And the output should have an "Extraction Metadata" footer
+
+    Scenario: Format meeting metadata section
+      Given meeting metadata with title "Q1 Planning Meeting"
+      And date "2024-01-15"
+      And participants ["Alice", "Bob", "Charlie"]
+      And duration "90 minutes"
+      When I generate the metadata section
+      Then the output should be:
+        """
+        **Date:** 2024-01-15
+        **Duration:** 90 minutes
+        **Participants:** Alice, Bob, Charlie
+        """
+
+    Scenario: Format decisions section
+      Given a list of decisions with content and context
+      When I generate the decisions section
+      Then each decision should be formatted as a subsection
+      And each should show the decision content
+      And each should show the context
+      And each should show the confidence score
+
+    Scenario: Format action items as a table
+      Given a list of action items with urgency, task, owner, deadline, and confidence
+      When I generate the action items section
+      Then the output should be a markdown table
+      And the table should have columns: Urgency | Task | Owner | Deadline | Confidence
+      And high urgency items should have a 🔴 emoji
+      And medium urgency items should have a 🟡 emoji
+      And low urgency items should have a 🟢 emoji
+      And items should be sorted by urgency
+
+  Rule: Table of contents must link to sections
+
+    Scenario: Generate table of contents with links
+      Given a complete extraction result
+      When I generate the table of contents
+      Then it should include numbered links to all major sections
+      And the links should use markdown anchor format
+      And clicking a link should navigate to that section
+
+  Rule: Confidence scores must be included
+
+    Scenario: Show confidence scores inline
+      Given extraction results with confidence scores
+      When I generate markdown output
+      Then each decision should display its confidence score
+      And each action item should display its confidence score in the table
+      And each risk should display its confidence score
+      And each next step should display its confidence score
+      And the overall confidence should be shown in the footer
+
+    Scenario: Include collapsible section for low confidence items
+      Given some items have confidence below threshold
+      When I generate markdown output
+      Then a collapsible details section should be included at the bottom
+      And it should be titled "Low Confidence Items (Click to expand)"
+      And it should list all items below the confidence threshold
+      And it should show the confidence score for each
+
+  Rule: File naming must follow convention
+
+    Scenario: Generate output filename from meeting title and date
+      Given meeting title "Q1 Planning Meeting"
+      And meeting date "2024-01-15"
+      When I generate the output filename
+      Then the filename should be "Q1_Planning_Meeting_2024-01-15_minutes.md"
+
+    Scenario: Sanitize filename from special characters
+      Given meeting title "Sprint Review: Q1/Q2 Planning!"
+      And meeting date "2024-01-15"
+      When I generate the output filename
+      Then special characters should be removed or replaced
+      And the filename should be valid for all operating systems
+
+  Rule: Output directory must be configurable and XDG-compliant
+
+    Scenario: Use default XDG-compliant output directory
+      Given no custom output directory is specified
+      When I determine the output directory
+      Then it should use XDG_DATA_HOME/meeting-extractor/minutes
+      And it should fall back to ~/.local/share/meeting-extractor/minutes if XDG_DATA_HOME is not set
+
+    Scenario: Use custom output directory
+      Given the user specifies output directory "/custom/path/minutes"
+      When I save the markdown output
+      Then the file should be saved to "/custom/path/minutes"
+      And the directory should be created if it doesn't exist
+
+  Rule: Footer metadata must include tool information
+
+    Scenario: Generate extraction metadata footer
+      Given a completed extraction
+      When I generate the markdown footer
+      Then it should show "Generated by: Meeting Minutes Extractor v[version]"
+      And it should show "Processed at: [ISO 8601 timestamp]"
+      And it should show "Source file: [original filename]"
+      And it should show "Overall confidence: [score]"
+
+  Rule: Optional JSON export must be supported
+
+    Scenario: Export extraction result as JSON
+      Given an ExtractionResult
+      And the --json flag is set
+      When I save the output
+      Then a JSON file should be created alongside the markdown
+      And the JSON filename should match the markdown filename with .json extension
+      And the JSON should contain all extraction data in structured format
+      And the JSON should be valid and parseable
+
+    Scenario: JSON-only export mode
+      Given the --json-only flag is set
+      When I save the output
+      Then only a JSON file should be created
+      And no markdown file should be created
