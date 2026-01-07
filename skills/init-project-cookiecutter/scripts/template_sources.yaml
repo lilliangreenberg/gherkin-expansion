@@ -1,0 +1,255 @@
+# Template Sources Configuration
+# Maps project requirements to Git repository URLs containing cookiecutter templates
+#
+# This file defines where cookiecutter templates are located in Git repositories.
+# Templates can be:
+#   1. Dedicated repos: One template per repository
+#   2. Subdirectories: Multiple templates in one repo using --directory flag
+#   3. Branches/Tags: Specific versions using --checkout flag
+#
+# Format:
+#   templates:
+#     <template-id>:
+#       name: Human-readable name
+#       description: What this template provides
+#       git_url: Git repository URL (supports gh:, gl:, bb:, or full URLs)
+#       directory: Optional subdirectory path within repo
+#       checkout: Optional branch, tag, or commit to use
+#       framework: CLI framework (click, typer, argparse)
+#       supports_integrations: List of supported integration types
+#
+# Users can add custom templates by:
+#   1. Editing this file to add new Git repository URLs
+#   2. Creating a user-specific override file: ~/.claude/template_sources_override.yaml
+#   3. Using --template-url flag to specify ad-hoc template URLs
+
+version: "2.0.0"
+
+# Default templates maintained by the project
+templates:
+
+  bdd-cli-click:
+    name: "BDD CLI with Click Framework"
+    description: "Full-featured BDD-based CLI using Click framework with decorator-based commands"
+
+    # Git repository URL - supports multiple formats:
+    # - GitHub shorthand: gh:username/repo-name
+    # - GitLab shorthand: gl:username/repo-name
+    # - Bitbucket shorthand: bb:username/repo-name
+    # - Full URLs: https://github.com/username/repo-name.git
+    git_url: "gh:your-org/bdd-cli-click-template"
+
+    # Optional: If template is in a subdirectory of the repo
+    # directory: "templates/bdd-cli-click"
+
+    # Optional: Specific branch, tag, or commit
+    # checkout: "v2.0.0"
+
+    framework: "click"
+    supports_integrations:
+      - api
+      - database
+      - files
+      - data
+
+    best_for:
+      - "Feature-rich CLIs with multiple subcommands"
+      - "Applications requiring complex option handling"
+      - "Projects needing extensible command plugins"
+
+    priority: 1
+    status: "stable"  # stable, beta, experimental
+
+  bdd-cli-typer:
+    name: "BDD CLI with Typer Framework"
+    description: "Modern BDD-based CLI using Typer framework with type-hint driven interface"
+    git_url: "gh:your-org/bdd-cli-typer-template"
+    framework: "typer"
+    supports_integrations:
+      - api
+      - database
+      - files
+      - data
+    best_for:
+      - "Modern Python projects using type hints"
+      - "Developers familiar with FastAPI"
+      - "Applications requiring automatic validation"
+    priority: 2
+    status: "stable"
+
+  bdd-cli-argparse:
+    name: "BDD CLI with Argparse"
+    description: "BDD-based CLI using Python's standard library argparse module"
+    git_url: "gh:your-org/bdd-cli-argparse-template"
+    framework: "argparse"
+    supports_integrations:
+      - api
+      - database
+      - files
+      - data
+    best_for:
+      - "Projects requiring minimal dependencies"
+      - "Maximum portability"
+      - "Traditional Python CLI applications"
+    priority: 3
+    status: "stable"
+
+# Example: Template from subdirectory in a monorepo
+#
+#  bdd-cli-click-advanced:
+#    name: "Advanced BDD CLI with Click"
+#    description: "Feature-rich Click template with additional tooling"
+#    git_url: "gh:your-org/python-templates"
+#    directory: "cli-templates/bdd-click-advanced"
+#    checkout: "main"
+#    framework: "click"
+#    supports_integrations:
+#      - api
+#      - database
+#      - files
+#      - data
+#    priority: 4
+#    status: "experimental"
+
+# Example: Template from specific branch or tag
+#
+#  bdd-cli-click-v1:
+#    name: "BDD CLI with Click (v1 stable)"
+#    description: "Legacy stable version of Click template"
+#    git_url: "gh:your-org/bdd-cli-click-template"
+#    checkout: "v1.5.0"
+#    framework: "click"
+#    supports_integrations:
+#      - api
+#      - files
+#    priority: 5
+#    status: "deprecated"
+
+# Example: Template from GitLab
+#
+#  bdd-cli-click-gitlab:
+#    name: "BDD CLI Click (GitLab)"
+#    git_url: "gl:your-group/bdd-cli-click-template"
+#    framework: "click"
+#    supports_integrations:
+#      - api
+#    priority: 6
+#    status: "stable"
+
+# Example: Template from full URL
+#
+#  bdd-cli-custom:
+#    name: "Custom BDD CLI Template"
+#    git_url: "https://git.example.com/templates/bdd-cli-template.git"
+#    directory: "click-variant"
+#    framework: "click"
+#    supports_integrations:
+#      - api
+#    priority: 7
+#    status: "stable"
+
+# Integration definitions - what each integration adds
+integrations:
+  api:
+    name: "HTTP/REST API Integration"
+    description: "Support for making HTTP requests to external APIs"
+    dependencies:
+      - "httpx>=0.27.0"
+    dev_dependencies:
+      - "responses>=0.25.0"
+    typically_adds:
+      - "infrastructure/api_client.py"
+      - "features/04_api_integration.feature"
+      - "steps/api_steps.py"
+
+  database:
+    name: "Database Integration"
+    description: "Support for database operations using SQLAlchemy ORM"
+    dependencies:
+      - "sqlalchemy>=2.0.0"
+      - "psycopg2-binary>=2.9.0"
+    dev_dependencies: []
+    typically_adds:
+      - "infrastructure/database.py"
+      - "core/models.py"
+      - "features/05_database_operations.feature"
+      - "steps/database_steps.py"
+
+  files:
+    name: "Advanced File Processing"
+    description: "Support for processing various file formats"
+    dependencies:
+      - "pypdf2>=3.0.0"
+      - "python-magic-bin>=0.4.0"
+    dev_dependencies: []
+    typically_adds:
+      - "infrastructure/file_handler.py"
+      - "features/03_file_operations.feature"
+      - "steps/file_steps.py"
+
+  data:
+    name: "Data Analysis and Transformation"
+    description: "Support for data analysis using pandas and numpy"
+    dependencies:
+      - "pandas>=2.0.0"
+      - "numpy>=1.24.0"
+    dev_dependencies: []
+    typically_adds:
+      - "services/data_processor.py"
+      - "features/06_data_processing.feature"
+      - "steps/data_steps.py"
+
+# Template selection rules
+# These rules determine which template to use based on user requirements
+selection_rules:
+  - condition: "framework == 'click'"
+    template: "bdd-cli-click"
+    reason: "User explicitly requested Click framework"
+
+  - condition: "framework == 'typer'"
+    template: "bdd-cli-typer"
+    reason: "User explicitly requested Typer framework"
+
+  - condition: "framework == 'argparse'"
+    template: "bdd-cli-argparse"
+    reason: "User explicitly requested argparse"
+
+  - condition: "framework is None"
+    template: "bdd-cli-click"
+    reason: "Click is the default framework when no preference specified"
+
+# Validation rules
+validation:
+  project_name:
+    pattern: "^[a-z][a-z0-9_-]*$"
+    message: "Project name must start with a letter and contain only lowercase letters, numbers, hyphens, and underscores"
+
+  framework:
+    allowed_values:
+      - "click"
+      - "typer"
+      - "argparse"
+      - null
+    message: "Framework must be one of: click, typer, argparse"
+
+  integrations:
+    allowed_values:
+      - "api"
+      - "database"
+      - "files"
+      - "data"
+    message: "Each integration must be one of: api, database, files, data"
+
+# Default values for template variables
+defaults:
+  author_name: "Your Name"
+  author_email: "you@example.com"
+  python_version: "3.11"
+  license: "MIT"
+
+# Cache settings for Git repository clones
+cache:
+  enabled: true
+  location: "~/.claude/cookiecutter_cache"
+  ttl_days: 7  # Re-clone templates older than this
+  auto_clean: true  # Clean expired cache entries automatically
