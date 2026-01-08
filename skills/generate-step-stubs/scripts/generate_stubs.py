@@ -298,24 +298,34 @@ class GherkinParser:
 
         # Process Background steps
         if hasattr(feature, "background") and feature.background:
+            previous_step_type: str | None = None
             for behave_step in feature.background.steps:
-                steps.append(self._convert_behave_step(behave_step))
+                step = self._convert_behave_step(behave_step, previous_step_type)
+                steps.append(step)
+                previous_step_type = step.step_type
 
         # Process Scenario steps
         if hasattr(feature, "scenarios"):
             for scenario in feature.scenarios:
                 if hasattr(scenario, "steps"):
+                    # Reset previous_step_type for each scenario
+                    previous_step_type = None
                     for behave_step in scenario.steps:
-                        steps.append(self._convert_behave_step(behave_step))
+                        step = self._convert_behave_step(behave_step, previous_step_type)
+                        steps.append(step)
+                        previous_step_type = step.step_type
 
         return self._deduplicate_steps(steps)
 
-    def _convert_behave_step(self, behave_step: Any) -> Step:
+    def _convert_behave_step(
+        self, behave_step: Any, previous_step_type: str | None = None
+    ) -> Step:
         """
         Convert Behave step to our Step dataclass.
 
         Args:
             behave_step: Behave Step object
+            previous_step_type: Step type from previous step (for And/But/* inheritance)
 
         Returns:
             Step object
@@ -323,8 +333,9 @@ class GherkinParser:
         # Normalize step type
         step_type = behave_step.keyword.lower().strip()
         if step_type in ("and", "but", "*"):
-            # These inherit from context, default to 'given'
-            step_type = "given"
+            # And/But/* inherit step type from previous step
+            # If no previous step, default to 'given'
+            step_type = previous_step_type if previous_step_type else "given"
 
         # Extract parameters and create pattern
         pattern, params = self._extract_parameters(behave_step.name)

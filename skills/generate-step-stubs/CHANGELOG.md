@@ -1,5 +1,122 @@
 # Changelog
 
+## [1.2.1] - 2026-01-08
+
+### 🐛 Bug Fixes
+
+#### Critical: Fixed And/But/* Step Type Inheritance
+
+**Problem**: And/But/* steps were incorrectly defaulting to `@given` decorator instead of inheriting the step type from the previous step.
+
+**Example of incorrect behavior** (v1.2.0 and earlier):
+```gherkin
+When the user logs in
+And the user navigates to dashboard  # Was incorrectly @given, should be @when
+```
+
+**Root Cause**: The `_convert_behave_step` method didn't track the previous step type, causing And/But/* steps to always default to 'given'.
+
+**Fix**: Updated parser to track previous step type throughout each scenario and pass it to step converter. And/But/* steps now correctly inherit:
+- And/But/* after Given → `@given`
+- And/But/* after When → `@when`
+- And/But/* after Then → `@then`
+
+**Impact**: This aligns with the Gherkin specification which states that And/But/* are syntactic sugar that inherit the step type from context.
+
+**Testing**: Added comprehensive test `test_and_but_step_inheritance` covering all inheritance scenarios.
+
+**Files Changed**:
+- `generate_stubs.py`: Updated `_extract_steps_from_feature` and `_convert_behave_step`
+- `test_generate_stubs.py`: Added new test case
+- Test suite: 30 tests, all passing
+
+---
+
+## [1.2.0] - 2026-01-08
+
+### 📚 Documentation Overhaul
+
+#### Progressive Disclosure Architecture
+- **Before**: 530-line SKILL.md with all content in one file
+- **After**: Split into focused files following Agent Skills specification best practices
+  - `SKILL.md` (285 lines) - Core instructions only
+  - `references/EXAMPLES.md` - Extended usage examples
+  - `references/TROUBLESHOOTING.md` - Error handling and common issues
+  - `references/ADVANCED_USAGE.md` - Integration patterns and workflows
+- **Impact**: Faster context loading, easier navigation, better progressive disclosure
+
+#### New Documentation Files
+
+**EXAMPLES.md** - Comprehensive examples including:
+- Basic single-file and multi-file usage
+- Parameter handling (strings, numbers, semantic types, scenario outlines)
+- Data tables and doc strings
+- Complete BDD workflow integration (user login feature end-to-end)
+- Advanced usage patterns
+
+**TROUBLESHOOTING.md** - Complete troubleshooting guide:
+- Common errors (file not found, invalid extension, file exists)
+- File and path issues
+- Parsing issues (wrong parameter names, function conflicts)
+- Generation issues (import errors, syntax errors)
+- Type inference issues
+- Integration issues (Behave can't find steps, similarity detection)
+- FAQ with workarounds
+
+**ADVANCED_USAGE.md** - Integration and automation:
+- BDD Red-Green-Refactor cycle integration
+- CI/CD examples (GitHub Actions, GitLab CI, Jenkins)
+- Pre-commit hooks (with and without framework)
+- Programmatic usage (import as module)
+- Multi-project strategies
+- Performance optimization (parallel processing, caching)
+- Custom workflows (auto-regenerate, Makefile integration)
+
+#### Improved SKILL.md
+- Condensed from 530 to 285 lines
+- Removed redundant content
+- Added clear references to other documentation
+- Better organization with focused sections
+- Quick workflow section for common use cases
+
+### 🔗 Cross-Reference Improvements
+- All files now properly link to each other
+- Clear navigation path for users
+- "See X for Y" guidance throughout
+
+### 📝 Agent Skills Spec Compliance
+- SKILL.md under recommended 500-line limit (now 285 lines)
+- Progressive disclosure with references/ directory
+- Clear separation of core instructions vs. detailed examples
+- Better metadata in frontmatter (version bumped to 1.2.0)
+
+### Example Documentation Structure
+
+**Before v1.2.0:**
+```
+SKILL.md (530 lines) - Everything in one file
+README.md
+CHANGELOG.md
+IMPROVEMENTS.md
+```
+
+**After v1.2.0:**
+```
+SKILL.md (285 lines) - Core instructions only
+README.md - Quick start
+CHANGELOG.md - Version history
+references/
+  ├── EXAMPLES.md - Extended examples
+  ├── TROUBLESHOOTING.md - Error handling
+  ├── ADVANCED_USAGE.md - Integration patterns
+  └── IMPROVEMENTS.md - Future enhancements
+```
+
+### Breaking Changes
+None! This is purely a documentation reorganization. All functionality remains identical to v1.1.0.
+
+---
+
 ## [1.1.0] - 2026-01-08
 
 ### 🚀 Major Improvements

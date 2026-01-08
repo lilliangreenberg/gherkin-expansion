@@ -138,10 +138,14 @@ options:
 
 ## Related Documentation
 
-- Full documentation: See `SKILL.md`
-- BDD workflow guide: See `../../BDD_IMPLEMENTATION_GUIDE.md`
-- Behave docs: https://behave.readthedocs.io/
-- Gherkin reference: https://cucumber.io/docs/gherkin/
+- **Full documentation**: [SKILL.md](SKILL.md)
+- **Extended examples**: [references/EXAMPLES.md](references/EXAMPLES.md)
+- **Troubleshooting**: [references/TROUBLESHOOTING.md](references/TROUBLESHOOTING.md)
+- **Advanced integration**: [references/ADVANCED_USAGE.md](references/ADVANCED_USAGE.md)
+- **Future improvements**: [references/IMPROVEMENTS.md](references/IMPROVEMENTS.md)
+- **BDD workflow guide**: [../../BDD_IMPLEMENTATION_GUIDE.md](../../BDD_IMPLEMENTATION_GUIDE.md)
+- **Behave docs**: https://behave.readthedocs.io/
+- **Gherkin reference**: https://cucumber.io/docs/gherkin/
 
 ## Troubleshooting
 

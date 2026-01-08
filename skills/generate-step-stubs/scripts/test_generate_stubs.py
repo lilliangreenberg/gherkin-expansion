@@ -152,6 +152,53 @@ class TestGherkinParser:
         assert not parser._is_numeric("abc")
         assert not parser._is_numeric("12abc")
 
+    def test_and_but_step_inheritance(self, tmp_path):
+        """Test that And/But/* steps inherit step type from previous step."""
+        parser = GherkinParser()
+
+        # Create test feature with And/But steps
+        feature_file = tmp_path / "test.feature"
+        feature_file.write_text("""
+Feature: Test And/But Inheritance
+
+  Scenario: Test proper inheritance
+    Given a user exists
+    And the user is authenticated
+    When the user logs in
+    And the user navigates to dashboard
+    But the user has no notifications
+    Then the user should see welcome message
+    And the dashboard should be displayed
+    But the notifications panel should be empty
+""")
+
+        steps = parser.parse_file(feature_file)
+
+        # Verify step types
+        assert len(steps) == 8
+
+        # Given and And after Given
+        assert steps[0].step_type == "given"
+        assert steps[0].text == "a user exists"
+        assert steps[1].step_type == "given"  # And inherits from Given
+        assert steps[1].text == "the user is authenticated"
+
+        # When and And/But after When
+        assert steps[2].step_type == "when"
+        assert steps[2].text == "the user logs in"
+        assert steps[3].step_type == "when"  # And inherits from When
+        assert steps[3].text == "the user navigates to dashboard"
+        assert steps[4].step_type == "when"  # But inherits from When
+        assert steps[4].text == "the user has no notifications"
+
+        # Then and And/But after Then
+        assert steps[5].step_type == "then"
+        assert steps[5].text == "the user should see welcome message"
+        assert steps[6].step_type == "then"  # And inherits from Then
+        assert steps[6].text == "the dashboard should be displayed"
+        assert steps[7].step_type == "then"  # But inherits from Then
+        assert steps[7].text == "the notifications panel should be empty"
+
 
 class TestExistingStepScanner:
     """Tests for ExistingStepScanner."""
