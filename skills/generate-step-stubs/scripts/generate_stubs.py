@@ -304,7 +304,7 @@ class GherkinParser:
                 steps.append(step)
                 previous_step_type = step.step_type
 
-        # Process Scenario steps
+        # Process Scenario steps (top-level scenarios)
         if hasattr(feature, "scenarios"):
             for scenario in feature.scenarios:
                 if hasattr(scenario, "steps"):
@@ -314,6 +314,28 @@ class GherkinParser:
                         step = self._convert_behave_step(behave_step, previous_step_type)
                         steps.append(step)
                         previous_step_type = step.step_type
+
+        # Process Rule blocks (scenarios nested under rules)
+        if hasattr(feature, "rules"):
+            for rule in feature.rules:
+                # Process Rule background (if any)
+                if hasattr(rule, "background") and rule.background:
+                    previous_step_type = None
+                    for behave_step in rule.background.steps:
+                        step = self._convert_behave_step(behave_step, previous_step_type)
+                        steps.append(step)
+                        previous_step_type = step.step_type
+
+                # Process scenarios in the rule
+                if hasattr(rule, "scenarios"):
+                    for scenario in rule.scenarios:
+                        if hasattr(scenario, "steps"):
+                            # Reset previous_step_type for each scenario
+                            previous_step_type = None
+                            for behave_step in scenario.steps:
+                                step = self._convert_behave_step(behave_step, previous_step_type)
+                                steps.append(step)
+                                previous_step_type = step.step_type
 
         return self._deduplicate_steps(steps)
 

@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.2.2] - 2026-01-09
+
+### 🐛 Bug Fixes
+
+#### Critical: Fixed Rule Block Support in Gherkin Parser
+
+**Problem**: Feature files using Gherkin `Rule:` blocks were incorrectly reporting "No steps found" even when they contained valid scenarios with steps.
+
+**Example of affected feature** (data_export.feature):
+```gherkin
+Feature: Data Export
+  Rule: Export must support multiple file formats
+    Scenario: Export to CSV
+      Given I have a dataset with 100 records
+      When I export to CSV format
+      Then a CSV file should be generated
+```
+
+**Root Cause**: The `_extract_steps_from_feature` method only processed `feature.scenarios` but didn't handle scenarios nested under `Rule:` blocks. When a feature uses Rules to organize scenarios, `feature.scenarios` is empty and the actual scenarios are in `feature.rules[].scenarios`.
+
+**Fix**: Updated parser to:
+1. Process top-level scenarios from `feature.scenarios`
+2. Process scenarios nested under `feature.rules`
+3. Support Rule-level backgrounds (in addition to Feature-level backgrounds)
+4. Maintain proper step type inheritance within Rule scenarios
+
+**Impact**: Feature files using Rules now work correctly. Tested with:
+- `data_export.feature`: 144 steps extracted (was 0)
+- `notification_system.feature`: 121 steps extracted (was 0)
+- `search_functionality.feature`: 139 steps extracted (was 0)
+- `shopping_cart.feature`: 108 steps extracted (was 0)
+- `user_authentication.feature`: 70 steps extracted (was 0)
+
+**Testing**: Verified all feature files in `gherkin-examples/` directory now parse correctly.
+
+**Files Changed**:
+- `generate_stubs.py`: Updated `_extract_steps_from_feature` to iterate through `feature.rules`
+
+**Note**: Rules are a Gherkin feature for organizing scenarios by business rules. This is a commonly used pattern in BDD and is now fully supported.
+
+---
+
 ## [1.2.1] - 2026-01-08
 
 ### 🐛 Bug Fixes

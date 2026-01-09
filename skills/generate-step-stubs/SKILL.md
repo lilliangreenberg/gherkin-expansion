@@ -4,7 +4,7 @@ description: Auto-generates Python step definition stubs from Gherkin feature fi
 license: MIT
 compatibility: Requires Python 3.11+ for type hints. Requires behave for advanced parsing (falls back to regex if not available). Works with any Behave-based BDD project.
 metadata:
-  version: 1.2.1
+  version: 1.2.2
   category: bdd-development
   automation_level: full
   skill_type: code_generator
@@ -13,6 +13,14 @@ metadata:
 # Generate Step Stubs
 
 This skill automatically generates Python step definition stubs from Gherkin feature files. It's designed to accelerate the BDD development workflow by eliminating the manual work of creating step definition boilerplate.
+
+## What's New in v1.2.2
+
+🐛 **Critical Bug Fix**: Fixed Rule block support in Gherkin parser
+- Feature files using `Rule:` blocks now correctly extract steps
+- Previously reported "No steps found" for features with Rules
+- Now supports scenarios nested under Rules and Rule-level backgrounds
+- Tested with real-world features: 144, 121, 139, 108, and 70 steps extracted
 
 ## What's New in v1.2.1
 
