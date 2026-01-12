@@ -51,8 +51,6 @@ class TypeInferencer:
         "size",
         "length",
         "quantity",
-        "amount",
-        "total",
         "index",
         "id",
         "port",
@@ -63,11 +61,26 @@ class TypeInferencer:
         "day",
     }
 
-    FLOAT_NAMES = {
+    # Monetary values must use Decimal for precision
+    DECIMAL_NAMES = {
         "price",
         "cost",
+        "dollar",
+        "dollars",
         "rate",
         "percentage",
+        "fee",
+        "tax",
+        "balance",
+        "payment",
+        "salary",
+        "wage",
+        "amount",
+        "total",
+    }
+
+    # Scientific/measurement values can use float
+    FLOAT_NAMES = {
         "ratio",
         "latitude",
         "longitude",
@@ -76,6 +89,8 @@ class TypeInferencer:
         "weight",
         "height",
         "distance",
+        "temperature",
+        "altitude",
     }
 
     BOOL_NAMES = {
@@ -103,28 +118,96 @@ class TypeInferencer:
         Returns:
             Python type annotation string
         """
+        # Semantic inference from name (check first for monetary values)
+        clean_name = param_name.lower().strip("_")
+
+        # Extract context words around the parameter for semantic inference
+        context_words = self._extract_context_words(param_name, pattern_context)
+
         # Check pattern for explicit type hints
         if f"{{{param_name}:d}}" in pattern_context:
             return "int"
         elif f"{{{param_name}:f}}" in pattern_context:
+            # Check if this is a monetary value that should be Decimal
+            # Look at both the parameter name and context words
+            if clean_name in self.DECIMAL_NAMES or any(
+                word in self.DECIMAL_NAMES for word in context_words
+            ):
+                return "Decimal"
             return "float"
         elif f"{{{param_name}:w}}" in pattern_context:
             return "str"  # Word
         elif f'"{{{param_name}}}"' in pattern_context:
             return "str"  # Quoted
 
-        # Semantic inference from name
-        clean_name = param_name.lower().strip("_")
-
+        # Semantic inference based on name
         if clean_name in self.INT_NAMES:
             return "int"
+        elif clean_name in self.DECIMAL_NAMES:
+            return "Decimal"
         elif clean_name in self.FLOAT_NAMES:
             return "float"
         elif clean_name in self.BOOL_NAMES:
             return "bool"
 
+        # Check context words for semantic hints
+        for word in context_words:
+            if word in self.DECIMAL_NAMES:
+                return "Decimal"
+            elif word in self.FLOAT_NAMES:
+                return "float"
+            elif word in self.INT_NAMES:
+                return "int"
+            elif word in self.BOOL_NAMES:
+                return "bool"
+
         # Default to str
         return "str"
+
+    def _extract_context_words(self, param_name: str, pattern: str) -> list[str]:
+        """
+        Extract words near a parameter in the pattern for context.
+
+        Args:
+            param_name: Name of the parameter
+            pattern: Pattern string containing the parameter
+
+        Returns:
+            List of context words (lowercased, cleaned)
+        """
+        import re
+
+        # Find the parameter placeholder in the pattern
+        param_patterns = [
+            f"{{{param_name}:d}}",
+            f"{{{param_name}:f}}",
+            f"{{{param_name}:w}}",
+            f'"{{{param_name}}}"',
+            f"{{{param_name}}}",
+        ]
+
+        param_pos = -1
+        for p_pattern in param_patterns:
+            param_pos = pattern.find(p_pattern)
+            if param_pos != -1:
+                break
+
+        if param_pos == -1:
+            return []
+
+        # Extract words before and after the parameter (within a window)
+        window_size = 50  # characters on each side
+        start = max(0, param_pos - window_size)
+        end = min(len(pattern), param_pos + window_size)
+        context = pattern[start:end]
+
+        # Extract words (letters only, 2+ characters)
+        words = re.findall(r"\b([a-z]{2,})\b", context.lower())
+
+        # Remove the parameter name itself
+        words = [w for w in words if w != param_name.lower()]
+
+        return words
 
 
 class ExistingStepScanner:
@@ -581,6 +664,8 @@ class StubGenerator:
     """Generates Python step definition stubs from steps."""
 
     TEMPLATE = '''"""Step definitions for {feature_name}."""
+from decimal import Decimal
+
 from behave import given, when, then
 from behave.runner import Context
 

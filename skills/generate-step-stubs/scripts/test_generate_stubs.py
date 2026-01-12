@@ -24,10 +24,11 @@ class TestTypeInferencer:
         inferencer = TypeInferencer()
         assert inferencer.infer_type("count", "a database with {count:d} records") == "int"
 
-    def test_infer_type_from_pattern_float(self):
-        """Test type inference from pattern - float."""
+    def test_infer_type_from_pattern_decimal(self):
+        """Test type inference from pattern - Decimal for monetary values."""
         inferencer = TypeInferencer()
-        assert inferencer.infer_type("price", "item costs {price:f}") == "float"
+        assert inferencer.infer_type("price", "item costs {price:f}") == "Decimal"
+        assert inferencer.infer_type("cost", "item costs {cost:f}") == "Decimal"
 
     def test_infer_type_from_pattern_quoted(self):
         """Test type inference from pattern - quoted string."""
@@ -41,12 +42,19 @@ class TestTypeInferencer:
         assert inferencer.infer_type("count", "database has count") == "int"
         assert inferencer.infer_type("port", "server on port") == "int"
 
-    def test_infer_type_from_semantic_float(self):
-        """Test type inference from semantic meaning - float."""
+    def test_infer_type_from_semantic_decimal(self):
+        """Test type inference from semantic meaning - Decimal for monetary values."""
         inferencer = TypeInferencer()
-        assert inferencer.infer_type("price", "item has price") == "float"
+        assert inferencer.infer_type("price", "item has price") == "Decimal"
+        assert inferencer.infer_type("cost", "item has cost") == "Decimal"
+        assert inferencer.infer_type("percentage", "success percentage") == "Decimal"
+
+    def test_infer_type_from_semantic_float(self):
+        """Test type inference from semantic meaning - float for measurements."""
+        inferencer = TypeInferencer()
         assert inferencer.infer_type("latitude", "location at latitude") == "float"
-        assert inferencer.infer_type("percentage", "success percentage") == "float"
+        assert inferencer.infer_type("score", "user score") == "float"
+        assert inferencer.infer_type("distance", "travel distance") == "float"
 
     def test_infer_type_from_semantic_bool(self):
         """Test type inference from semantic meaning - boolean."""
@@ -404,6 +412,7 @@ class TestStubGenerator:
 
         code = generator.generate(steps, "test")
 
+        assert "from decimal import Decimal" in code
         assert "from behave import given, when, then" in code
         assert "from behave.runner import Context" in code
         assert '@given(\'a user named "{name}"\')' in code

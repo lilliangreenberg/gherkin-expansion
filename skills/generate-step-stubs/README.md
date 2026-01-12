@@ -21,12 +21,13 @@ python scripts/generate_stubs.py features/*.feature -o features/steps/all_steps.
 
 1. ✅ Parses Gherkin `.feature` files using Behave's parser
 2. ✅ Extracts all `Given`, `When`, `Then` steps (including Background, data tables, doc strings)
-3. ✅ Intelligently infers parameter types (`int`, `float`, `str`, `bool`)
-4. ✅ Detects existing steps and suggests reuse (`--check-existing`)
-5. ✅ Handles parameters (quoted strings, numbers, Scenario Outline variables)
-6. ✅ Removes duplicates and resolves function name conflicts
-7. ✅ Generates Python stubs with proper `Context` type hints
-8. ✅ Organizes by step type (Given/When/Then)
+3. ✅ Intelligently infers parameter types (`int`, `Decimal`, `float`, `str`, `bool`)
+4. ✅ Uses `Decimal` for monetary values (price, cost, rate) and `float` for measurements
+5. ✅ Detects existing steps and suggests reuse (`--check-existing`)
+6. ✅ Handles parameters (quoted strings, numbers, Scenario Outline variables)
+7. ✅ Removes duplicates and resolves function name conflicts
+8. ✅ Generates Python stubs with proper `Context` type hints
+9. ✅ Organizes by step type (Given/When/Then)
 
 ## Example
 
@@ -48,6 +49,8 @@ python scripts/generate_stubs.py login.feature
 **Output (`login_steps.py`):**
 ```python
 """Step definitions for login."""
+from decimal import Decimal
+
 from behave import given, when, then
 from behave.runner import Context
 

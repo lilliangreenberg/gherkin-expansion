@@ -1,5 +1,61 @@
 # Changelog
 
+## [1.2.3] - 2026-01-12
+
+### ✨ Enhancement
+
+#### Improved: Decimal Type Inference for Monetary Values
+
+**Problem**: Monetary values (price, cost, rate, fee, tax, etc.) were being typed as `float`, which can lead to precision errors in financial calculations due to floating-point representation issues.
+
+**Example of Issue**:
+```python
+# Before (INCORRECT for money)
+@given('item costs {price:f} dollars')
+def item_costs_dollars(context: Context, price: float) -> None:
+    # float can cause precision errors: 0.1 + 0.2 != 0.3
+    pass
+```
+
+**Solution**: Split numeric type inference into two categories:
+1. **DECIMAL_NAMES**: Monetary and financial values that require exact precision
+   - `price`, `cost`, `rate`, `percentage`, `fee`, `tax`, `dollar`, `dollars`, `balance`, `payment`, `salary`, `wage`
+2. **FLOAT_NAMES**: Scientific and measurement values where floating-point is appropriate
+   - `latitude`, `longitude`, `score`, `ratio`, `distance`, `temperature`, `altitude`, `weight`, `height`
+
+**Changes**:
+- Updated `TypeInferencer` class to include separate `DECIMAL_NAMES` set
+- Modified `infer_type()` method to return `"Decimal"` for monetary parameters
+- Added `from decimal import Decimal` import to generated step definition templates
+- Parameters with `:f` pattern AND monetary names now correctly infer as `Decimal`
+
+**After (CORRECT)**:
+```python
+from decimal import Decimal
+
+@given('item costs {price:f} dollars')
+def item_costs_dollars(context: Context, price: Decimal) -> None:
+    # Decimal provides exact precision for monetary calculations
+    pass
+```
+
+**Impact**:
+- All generated step definitions now use proper types for monetary values
+- Prevents floating-point precision errors in financial calculations
+- Maintains backward compatibility for measurement values (score, latitude, etc.)
+- Follows Python best practices for handling money
+
+**Files Changed**:
+- `generate_stubs.py`: Split FLOAT_NAMES into DECIMAL_NAMES and FLOAT_NAMES, updated type inference logic
+- `SKILL.md`: Updated documentation to reflect Decimal usage for monetary values
+- `EXAMPLES.md`: Updated examples showing Decimal for price/cost parameters
+- `README.md`: Added Decimal to list of supported types
+- `test_generate_stubs.py`: Updated tests to expect Decimal for monetary parameters
+
+**Why This Matters**: Using `float` for money is a common programming mistake that can lead to serious bugs in financial applications. This change ensures generated BDD steps follow best practices from the start.
+
+---
+
 ## [1.2.2] - 2026-01-09
 
 ### 🐛 Bug Fixes

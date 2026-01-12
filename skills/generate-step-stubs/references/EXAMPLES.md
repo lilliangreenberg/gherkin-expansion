@@ -163,7 +163,7 @@ def i_should_see(context: Context, file_not_found: str) -> None:
 
 ---
 
-### Numbers (Integer and Float)
+### Numbers (Integer, Decimal, and Float)
 
 **Feature:**
 ```gherkin
@@ -179,6 +179,8 @@ Then total price should be 10.79
 
 **Generated:**
 ```python
+from decimal import Decimal
+
 # Integer parameters
 @given('a database with {count:d} user records')
 def a_database_with_user_records(context: Context, count: int) -> None:
@@ -190,21 +192,22 @@ def i_query_records_with_limit(context: Context, limit: int) -> None:
     """TODO: Implement step: I query records with limit 5"""
     raise NotImplementedError("Step not yet implemented")
 
-# Float parameters
+# Decimal parameters for monetary values
 @given('item costs {price:f} dollars')
-def item_costs_dollars(context: Context, price: float) -> None:
+def item_costs_dollars(context: Context, price: Decimal) -> None:
     """TODO: Implement step: item costs 9.99 dollars"""
     raise NotImplementedError("Step not yet implemented")
 
 @given('tax rate is {rate:f}')
-def tax_rate_is(context: Context, rate: float) -> None:
+def tax_rate_is(context: Context, rate: Decimal) -> None:
     """TODO: Implement step: tax rate is 0.08"""
     raise NotImplementedError("Step not yet implemented")
 ```
 
 **Note**:
 - Integers: `10`, `5` → `{name:d}` → `int`
-- Floats: `9.99`, `0.08` → `{name:f}` → `float`
+- Decimals (monetary): `9.99`, `0.08` (with names like price, cost, rate) → `{name:f}` → `Decimal`
+- Floats (measurements): Geographic coordinates, scores → `{name:f}` → `float`
 
 ---
 
@@ -219,6 +222,8 @@ Then response should have status 200
 
 **Generated:**
 ```python
+from decimal import Decimal
+
 @given('a user with age {age:d} and score {score:f}')
 def a_user_with_age_and_score(context: Context, age: int, score: float) -> None:
     """TODO: Implement step: a user with age 30 and score 95.5"""
@@ -237,10 +242,14 @@ def response_should_have_status(context: Context, status: int) -> None:
 
 **Type Inference Rules:**
 - `age` → recognized as `int` (in INT_NAMES set)
-- `score` → recognized as `float` (in FLOAT_NAMES set)
+- `score` → recognized as `float` (in FLOAT_NAMES set - measurement/score value)
 - `enabled` → recognized as `bool` (in BOOL_NAMES set)
 - `port` → recognized as `int` (in INT_NAMES set)
 - `status` → recognized as `int` (in INT_NAMES set)
+
+**Monetary vs Measurement Values:**
+- Monetary (use Decimal): `price`, `cost`, `rate`, `percentage`, `fee`, `tax`, `dollar`, `dollars`
+- Measurements (use float): `score`, `latitude`, `longitude`, `distance`, `temperature`, `ratio`
 
 ---
 

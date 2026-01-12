@@ -14,37 +14,6 @@ metadata:
 
 This skill automatically generates Python step definition stubs from Gherkin feature files. It's designed to accelerate the BDD development workflow by eliminating the manual work of creating step definition boilerplate.
 
-## What's New in v1.2.2
-
-🐛 **Critical Bug Fix**: Fixed Rule block support in Gherkin parser
-- Feature files using `Rule:` blocks now correctly extract steps
-- Previously reported "No steps found" for features with Rules
-- Now supports scenarios nested under Rules and Rule-level backgrounds
-- Tested with real-world features: 144, 121, 139, 108, and 70 steps extracted
-
-## What's New in v1.2.1
-
-🐛 **Critical Bug Fix**: Fixed And/But/* step type inheritance
-- And/But/* steps now correctly inherit decorator type from previous step
-- Previously all defaulted to `@given`, now properly use `@when`/`@then` based on context
-- Aligns with Gherkin specification for step keyword semantics
-
-## What's New in v1.2.0
-
-📚 **Documentation improvements**:
-- Split into focused files following Agent Skills best practices
-- See [EXAMPLES.md](references/EXAMPLES.md) for extended usage examples
-- See [TROUBLESHOOTING.md](references/TROUBLESHOOTING.md) for error handling
-- See [ADVANCED_USAGE.md](references/ADVANCED_USAGE.md) for integration patterns
-
-🚀 **Major improvements in v1.1.0**:
-- ✅ Behave Parser Integration with regex fallback
-- ✅ Intelligent Type Inference (int, float, str, bool)
-- ✅ Existing Step Detection with similarity matching
-- ✅ Data Table & Doc String Support
-- ✅ Proper Context type hints
-- ✅ Comprehensive test suite (29 tests)
-
 ## When to Use This Skill
 
 Use this skill when:
@@ -60,7 +29,7 @@ The skill performs these actions automatically:
 
 1. **Parses Gherkin Files**: Uses Behave's parser to read `.feature` files and extract all steps
 2. **Normalizes Steps**: Handles `Given`, `When`, `Then`, `And`, `But`, and `*` keywords
-3. **Extracts Parameters**: Identifies quoted strings, numbers (int/float), and scenario outline parameters
+3. **Extracts Parameters**: Identifies quoted strings, numbers (int/Decimal/float), and scenario outline parameters
 4. **Infers Types**: Automatically determines parameter types from context and naming patterns
 5. **Scans Existing Steps**: Optionally scans existing step definition files to detect similar steps
 6. **Generates Patterns**: Creates Behave-compatible regex patterns with typed parameter placeholders
@@ -81,6 +50,8 @@ The skill generates Python code with this structure:
 
 ```python
 """Step definitions for {feature_name}."""
+from decimal import Decimal
+
 from behave import given, when, then
 from behave.runner import Context
 
@@ -114,13 +85,6 @@ def the_output_should_contain(context: Context, text: str) -> None:
     """TODO: Implement step: the output should contain "success" """
     raise NotImplementedError("Step not yet implemented")
 ```
-
-**Key features**:
-- ✅ Proper `Context` type instead of `Any`
-- ✅ Inferred parameter types (`str`, `int`, `float`, `bool`)
-- ✅ Organized by step type with clear section headers
-- ✅ Descriptive docstrings with example text
-- ✅ Similarity warnings when existing steps are found
 
 ## How to Use This Skill
 
@@ -165,16 +129,20 @@ The skill intelligently infers parameter types:
 
 ```gherkin
 Given a database with 10 records        → {count:d} (int)
-Given item costs 9.99 dollars           → {price:f} (float)
+Given item costs 9.99 dollars           → {price:f} (Decimal - monetary value)
+Given latitude is 37.7749                → {latitude:f} (float - measurement)
 Given a file named "test.txt"           → {filename} (str)
 ```
+
+**Note**: The `:f` pattern marker indicates a floating-point number, but the **parameter name** determines whether it becomes `Decimal` (for monetary values like `price`, `cost`, `rate`) or `float` (for measurements like `latitude`, `score`, `distance`).
 
 ### From Semantic Names
 
 ```python
 # Type inference based on parameter names
 INT_NAMES: count, number, age, size, port, index, id
-FLOAT_NAMES: price, cost, rate, percentage, latitude, score
+DECIMAL_NAMES: price, cost, rate, percentage, fee, tax, dollar, dollars
+FLOAT_NAMES: latitude, longitude, score, ratio, distance, temperature
 BOOL_NAMES: enabled, disabled, active, valid, required
 ```
 
@@ -185,8 +153,10 @@ Given a user with age 30 and price 19.99
 
 **Generated**:
 ```python
+from decimal import Decimal
+
 @given('a user with age {age:d} and price {price:f}')
-def a_user_with_age_and_price(context: Context, age: int, price: float) -> None:
+def a_user_with_age_and_price(context: Context, age: int, price: Decimal) -> None:
 ```
 
 ## Best Practices
@@ -194,10 +164,10 @@ def a_user_with_age_and_price(context: Context, age: int, price: float) -> None:
 ### 1. Review Generated Code
 
 Always review before implementing:
-- ✅ Check parameter names are meaningful
-- ✅ Verify automatically inferred types are correct
-- ✅ Review similarity warnings suggesting existing step reuse
-- ✅ Ensure step patterns match your intent
+- Check parameter names are meaningful
+- Verify automatically inferred types are correct
+- Review similarity warnings suggesting existing step reuse
+- Ensure step patterns match your intent
 
 ### 2. Organize by Domain
 
@@ -260,7 +230,7 @@ For complete examples, see [EXAMPLES.md](references/EXAMPLES.md).
 4. **Similarity Threshold**: Existing step detection uses 60% similarity - may miss some matches or suggest false positives
 
 **Note**: Most limitations from v1.0.0 have been addressed:
-- ✅ ~~No parameter type inference~~ - Now infers int, float, str, bool
+- ✅ ~~No parameter type inference~~ - Now infers int, Decimal, float, str, bool
 - ✅ ~~No existing step detection~~ - Now scans with `--check-existing`
 - ✅ ~~No data table/doc string support~~ - Now detects and documents both
 - ✅ ~~Function name conflicts~~ - Now handles duplicates automatically
